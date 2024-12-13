@@ -25,6 +25,10 @@ public class cita {
         this.hora = hora;
         this.motivo_cita = motivo_cita;
     }
+    
+    cita(int i, String john_Doe, String string){
+        throw new UnsupportedOperationException("Not supported yet");
+    }
 
     public int getId_cita() {
         return id_cita;

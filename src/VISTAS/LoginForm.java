@@ -10,39 +10,54 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import VISTAS.MenuForm;
+import MODELO.conexion;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import javax.swing.JOptionPane;
+import java.sql.*;
 /**
  *
  * @author Darileysi Morales
  */
 public class LoginForm extends javax.swing.JFrame {
     
-    MenuForm principal = new MenuForm();
+    int intentos;
+    public static
+            String user = "";
+            String pass = "";
 
    
     public LoginForm() {
         initComponents();
         this.setLocationRelativeTo(null);
-        agregarKeyListener();
+        TextPrompt n = new TextPrompt("Ingrese su correo",txtUsuario);
+        TextPrompt a = new TextPrompt("Ingrese su contraseña",txtContraseña);
+        cerrar();
     }
     
-    
-    private void agregarKeyListener() {
-        // Configurar el mapeo de acciones
-        InputMap inputMap = txtContraseña.getInputMap();
-        ActionMap actionMap = txtContraseña.getActionMap();
-
-        // Agregar el evento de presionar Enter
-        KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
-        inputMap.put(enterKey, "Aceptar");
-
-        // Agregar la acción para aceptar el JOptionPane
-        actionMap.put("Aceptar", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                validar();
+    public void cerrar(){
+        try{
+            this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                confirmarsalida();
             }
-        });
-    }
+        }
+        );
+        
+    } catch (Exception e){
+        
+        }
+        }
+
+    public void confirmarsalida(){
+        int valor = JOptionPane.showConfirmDialog
+        (this,"¿Desea cerrar la aplicación?","Advertencia",JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE);
+        if(valor==JOptionPane.YES_OPTION){
+        JOptionPane.showMessageDialog(null,"Hasta Pronto","",JOptionPane.INFORMATION_MESSAGE);
+        System.exit(0);
+        }
+        }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -106,8 +121,7 @@ public class LoginForm extends javax.swing.JFrame {
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, -1, -1));
 
         txtUsuario.setFont(new java.awt.Font("Arial", 0, 12)); // NOI18N
-        txtUsuario.setForeground(new java.awt.Color(153, 153, 153));
-        txtUsuario.setText("Ingrese su nombre de usuario");
+        txtUsuario.setForeground(new java.awt.Color(0, 0, 153));
         txtUsuario.setBorder(null);
         txtUsuario.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -121,8 +135,7 @@ public class LoginForm extends javax.swing.JFrame {
         jLabel4.setText("CONTRASEÑA");
         jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 210, -1, -1));
 
-        txtContraseña.setForeground(new java.awt.Color(153, 153, 153));
-        txtContraseña.setText("********");
+        txtContraseña.setForeground(new java.awt.Color(0, 0, 153));
         txtContraseña.setBorder(null);
         txtContraseña.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -177,48 +190,56 @@ public class LoginForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void txtUsuarioMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtUsuarioMousePressed
-        if (txtUsuario.getText().equals("Ingrese su nombre de usuario")){
-            txtUsuario.setText("");
-            txtUsuario.setForeground(Color.BLACK);
-        }
-        if (String.valueOf(txtContraseña.getPassword()).isEmpty()){
-            txtContraseña.setText("********");
-            txtContraseña.setForeground(Color.GRAY); 
-        }
+
     }//GEN-LAST:event_txtUsuarioMousePressed
 
     private void txtContraseñaMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtContraseñaMousePressed
-        if (String.valueOf(txtContraseña.getPassword()).equals("********")){
-            txtContraseña.setText("");
-            txtContraseña.setForeground(Color.BLACK);
-        }
-        if (txtUsuario.getText().isEmpty()){
-            txtUsuario.setText("Ingrese su nombre de usuario");
-            txtUsuario.setForeground(Color.GRAY); 
-        }
+        
     }//GEN-LAST:event_txtContraseñaMousePressed
 
     private void btnIngresarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIngresarActionPerformed
-        validar();
+        conexion mysql = new conexion();
+        Connection cn=mysql.Conectar();
+        user = txtUsuario.getText().trim();
+        pass = txtContraseña.getText().trim();
+        if(!user.equals("")||!pass.equals("")){
+        try{
+        PreparedStatement pst = cn.prepareStatement("SELECT username, password FROM usuario WHERE username = '" + user + 
+        "' and password = '" + pass + "'");
+        
+        ResultSet rs=pst.executeQuery();
+        if(rs.next()){
+        this.disable();
+        JOptionPane.showMessageDialog(null,"Bienvenido");
+        MenuForm abrir= new MenuForm();
+        abrir.setVisible(true);
+        this.setVisible(false);
+        
+        } else if(intentos==3){
+        JOptionPane.showMessageDialog(null,"Has excedido el numero de intentos para ingresar al sistema","Verificar datos",JOptionPane.ERROR_MESSAGE);
+        System.exit(0);
+        }
+        else{
+        JOptionPane.showMessageDialog(null,"Datos de acceso incorrectos \n Quedan" + (3-intentos) +" Intentos");
+        txtUsuario.setText("");
+        txtContraseña.setText("");
+        intentos = intentos +1;
+        }
+        } catch (Exception e){
+        System.out.println("Error en el boton Acceder" +e);
+        JOptionPane.showMessageDialog(null,"!!Error al iniciar sesion!!, contacte al administrador.");
+        txtUsuario.setText("");
+        txtContraseña.setText("");
+        }
+        } else{
+        JOptionPane.showMessageDialog(null,"Debes llenar todos los campos.");
+        }
     }//GEN-LAST:event_btnIngresarActionPerformed
 
-    public void validar(){
-        String pass = txtContraseña.getText();
-        String user = txtUsuario.getText();
-        if(txtUsuario.getText().equals("")||txtContraseña.getText().equals("")){
-            JOptionPane.showMessageDialog(this, "Debe ingresar datos en las cajas de texto");
-            txtUsuario.requestFocus();
-        } else if (user.equals("Admin")&&(pass.compareTo("123")==0)){
-            JOptionPane.showMessageDialog(this, "Bienvenido al Sistema de Control de Pacientes con Diabetes");
-            MenuForm form = new MenuForm();
-            form.setVisible(true);
-            this.dispose();
-        }else{
-            JOptionPane.showMessageDialog(this, "Usuario y Contraseña incorrectos. Vuelva a intentarlo");
-            txtUsuario.setText("");
-            txtContraseña.setText((null)); 
+        public void validar(){
+        
         }
-    }
+    
     /**
      * @param args the command line arguments
      */
@@ -272,4 +293,4 @@ public class LoginForm extends javax.swing.JFrame {
     private javax.swing.JPasswordField txtContraseña;
     private javax.swing.JTextField txtUsuario;
     // End of variables declaration//GEN-END:variables
-}
+        }
