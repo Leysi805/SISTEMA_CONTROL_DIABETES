@@ -21,9 +21,25 @@ public class RegistroPacientes extends javax.swing.JInternalFrame {
      */
     public RegistroPacientes() {
         initComponents();
+        txtTelefono.addKeyListener(new java.awt.event.KeyAdapter() {
+    public void keyTyped(java.awt.event.KeyEvent evt) {
+        char c = evt.getKeyChar();
+        if (!Character.isDigit(c)) {
+            evt.consume(); // Ignora el evento si no es un número
+        }
+    }
+});
+
+txtContacto.addKeyListener(new java.awt.event.KeyAdapter() {
+    public void keyTyped(java.awt.event.KeyEvent evt) {
+        char c = evt.getKeyChar();
+        if (!Character.isDigit(c)) {
+            evt.consume(); // Ignora el evento si no es un número
+        }
+    }
+});
     }
 
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
